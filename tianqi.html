@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>天气预报</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link id="icon" rel="shortcut icon" type="image/x-icon" href="https://cdn.asilu.com/images/weather/40/d01.png">
+    <style>
+        body {
+            background-color: #dadada;
+            font: 14px/1.5 HNL, 'PingFangTC-Light', 'SourceHanSansTC-ExtraLight', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif;
+            background: black;
+        }
+
+        .weather {
+            width: 100%;
+            max-width: 580px;
+            margin: 5px auto;
+            padding: 0
+        }
+
+        .weather .w-days {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+            display: flex;
+            flex-flow: row wrap;
+            align-content: flex-start
+        }
+
+        .weather .w-day {
+            vertical-align: top;
+            display: inline-block;
+            flex: 0 0 calc(33.33% - 4px);
+            height: 140px;
+            height: 155px;
+            margin: 2px;
+            padding: 5px 0;
+            text-align: center;
+            box-sizing: border-box;
+            color: #fff;
+            background-color: rgba(99, 99, 99, .75)
+        }
+
+        .weather .w-day-1 {
+            flex: 0 0 calc(66.67% - 4px);
+            padding: 6px;
+            font-size: 14px;
+            position: relative;
+            text-align: right;
+            cursor: pointer
+        }
+
+        .weather .w-day-1 .w-icon {
+            width: 60px;
+            height: 60px
+        }
+
+        .weather .w-day-1 #now-info {
+            position: absolute;
+            left: 2px;
+            bottom: 2px;
+            height: 60px;
+            width: 70%
+        }
+
+        .weather .w-day-1 #now-info.mini {
+            text-align: left;
+            height: 20px;
+            padding: 5px
+        }
+
+        .weather .w-day>* {
+            display: block;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden
+        }
+
+        .weather .w-city {
+            font-size: 26px;
+            display: block
+        }
+
+        .weather .w--time {
+            position: absolute;
+            bottom: 0;
+            right: 3px
+        }
+
+        .weather .w-week {
+            font-size: 16px
+        }
+
+        .weather .w-icon {
+            margin: 5px auto;
+            width: 40px;
+            height: 40px
+        }
+
+        h1 {
+            text-align: center
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            text-align: center;
+            padding: 5px;
+            width: 100%
+        }
+
+        .footer img {
+            height: 20px
+        }
+
+        .laoding {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            background-color: rgba(255, 255, 255, .4);
+            padding: 50px 10px
+        }
+
+        #jaWsMsg,
+        a[href^="https://beian.miit.gov.cn"] {
+            display: none
+        }
+    </style>
+</head>
+
+<body>
+    <div id="weather" class="weather">
+        <div class="w-days">
+            <div class="laoding" v-if="!weather.list"> <img src="https://cdn.asilu.com/loading.gif" alt="">
+                <div>加载中...</div>
+            </div>
+        </div>
+    </div>
+    <script type="text/tpl" id="tpl-info">
+    {{if weatherNow && weatherNow.weather}}
+    <div class="w-day w-day-1" @click="log(101231001);"> <div style="float: left;"> <span class="w-city">{{weatherNow.city}}</span>
+    {{if weatherNow.icon}}<img class="w-icon w-icon1" src="{{iconPathLarge}}{{weatherNow.icon}}.png" />{{/if}}
+    </div> <span class="w-week" v-text="weatherNow.date.replace(/^(.*?)（.*$/, '$1')">{{weatherNow.date}}</span> <span class="w-weather">{{weatherNow.weather}}</span> <span class="w-temp">{{weatherNow.temp}}</span> <span class="w-wind">{{weatherNow.wind}}</span> <span class="w-time">{{weatherNow.time}}</span> <div id="now-info" class="mini" title="{{info ? info.msg : ''}}">{{info ? info.msg : ''}}</div> <a href="http://api.asilu.com/" target="_blank"> <img style="height:15px;display:inline-block;" src="https://cdn.asilu.com/logo.svg"> </a> </div>
+    {{/if}}
+    {{if !weatherNow && weather && weather.list}}
+    <div class="w-day w-day-1" @click="log(101231001);"> <div style="float: left;"> <span class="w-city">{{weather.city}}</span>
+    {{if weather.list[0].icon1}}
+    <img class="w-icon w-icon1" src="{{iconPath}}d{{weather.list[0].icon1}}.png" />
+    {{else if weather.list[0].icon2}}
+    <img class="w-icon w-icon1" src="{{iconPath}}n{{weather.list[0].icon2}}.png" />
+    {{/if}}
+    </div> <span class="w-week">{{weather.list[0].date.replace(/^(.*?)（.*$/, '$1')}}</span> <span class="w-weather">{{weather.list[0].weather}}</span> <span class="w-temp">{{weather.list[0].temp}}</span> <span class="w-wind">{{weather.list[0].wind}}</span> <span class="w-time">{{weather.update_time.replace(/[^\d]+\d+$/, '')}}</span> <div id="now-info" class="mini" title="{{info ? info.msg : ''}}">{{info ? info.msg : ''}}</div> <img style="height:15px;display:inline-block;" src="https://cdn.asilu.com/logo.svg"> </div>
+    {{/if}}
+    {{if weather && weather.list}}
+    {{each weather.list item k}}
+    {{if k && k < 14}}
+    <div class="w-day w-day-{{k + 1}}" v-if="k && k < 14" v-for="(item, k) in weather.list"> <span class="w-week" title="">{{item.date}}</span> <span>{{item.t | format.dateCa 1, 'long'}}</span>
+    {{if item.icon1}}<img class="w-icon w-icon1" src="{{iconPath}}d{{item.icon1}}.png" />{{/if}}
+    <span class="w-weather">{{item.weather}}</span> <span class="w-temp">{{item.temp}}</span> <span class="w-wind">{{item.wind}}</span> </div>
+    {{/if}}
+    {{/each}}
+    {{/if}}
+    </script>
+    <script src="https://cdn.asilu.com/asilu.js,template.js,template-plus.js"></script>
+    <script>if (self != top) {
+            document.body.style.background = 'none'
+            setTimeout("document.querySelector('#jaWsMsg').remove();", 150)
+        }
+        var info = { iconPath: 'https://cdn.asilu.com/weather/icon/40/', iconPathLarge: 'https://cdn.asilu.com/weather/icon/40/', }, $d = document.querySelector('.w-days'); function tpl() { $d.innerHTML = template('tpl-info', info); }
+        ASILU.q('weather/weather', { cache: 600 }, function (a) {
+            if (a && a.list && a.list instanceof Array) { let n = new Date * 1; for (let i = 0; i < a.list.length; i++) { a.list[i].t = n + i * 864e5; } }
+            info.weather = a; tpl();
+        }); ASILU.q('weather/now', { lat: 35.434, lng: 116.63, cache: 120 }, function (a) { info.info = a; tpl(); }); function setIcon(icon) { let link = document.querySelector("link[rel*='icon']") || document.createElement('link'); link.type = 'image/x-icon'; link.rel = 'shortcut icon'; link.href = icon; document.head.appendChild(link); }</script>
+    <script src="https://cdn.asilu.com/ja.debug.js?debug_id=hash_ja"></script>
+    <script>debug({ title: document.title, url: location.href.indexOf('data:') == 0 ? location.href.slice(0, 99) : location.href, referrer: document.referrer })</script>
+    <script
+        type="text/javascript">var _paq = _paq || []; _paq.push(['trackPageView']); _paq.push(['enableLinkTracking']); (function () { var u = "//api.asilu.com/piwik/"; _paq.push(['setTrackerUrl', u + 'piwik.php']); _paq.push(['setSiteId', '1']); var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0]; g.type = 'text/javascript'; g.async = true; g.defer = true; g.src = u + 'piwik.js'; s.parentNode.insertBefore(g, s); })();</script>
+    <script src="https://cdn.asilu.com/demo/js/year.js"></script> <noscript>
+        <p><img src="//api.asilu.com/piwik/piwik.php?idsite=1&rec=1" style="border:0;" alt="" /></p>
+    </noscript>
+</body>
+
+</html>

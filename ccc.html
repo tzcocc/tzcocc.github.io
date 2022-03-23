@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather</title>
+</head>
+
+<body>
+    <p>城市天气预报查询</p>
+    <h3 class="city"></h3>
+    <p class="updatetime"></p>
+    <p class="wendu"></p>
+    <p id="qqq"></p>
+    
+</body>
+
+</html>
+<script type="text/javascript">
+        var ta = function () {
+            let xhr = new XMLHttpRequest();
+            xhr.open('get', 'http://wthrcdn.etouch.cn/WeatherApi?city=' + "台州");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    let resp = xhr.responseXML.querySelector('resp');
+                    let city = resp.querySelector('city').innerHTML;
+                    document.querySelector(".city").innerHTML = city;
+                    let updatetime = resp.querySelector('updatetime').innerHTML;
+                    document.querySelector(".updatetime").innerHTML = updatetime;
+                    let wendu = resp.querySelector('wendu').innerHTML;
+                    document.querySelector(".wendu").innerHTML = wendu + '℃';
+					let date_1 = resp.querySelector('date_1').innerHTML;
+					document.getElementById("qqq").innerHTML = date_1;
+                }
+            }
+            xhr.send();
+        }
+        ta();
+    </script>
